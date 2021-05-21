@@ -6,6 +6,8 @@ let pauseButton = document.getElementById("pause-button");
 pauseButton.disabled = true;
 let clearButton = document.getElementById("clear-button");
 let algorithmSelect = document.getElementById("algorithm-select");
+let heuristicSelect = document.getElementById("heuristic-select");
+let heuristicMode = -1
 let nodes = []
 let lastInteraction = -1;
 let hoveringNode = null;
@@ -190,7 +192,12 @@ function distanceBetween(n1, n2){
     while (xDiff > 0 && yDiff > 0){
         xDiff--;
         yDiff--;
-        distance += 14;
+        if (heuristicMode == 0){
+            distance += 14;
+        } else if (heuristicMode == 1){
+            distance += 20
+        }
+        
     }
 
     while (xDiff > 0){
@@ -258,6 +265,7 @@ async function startSearch(){
         startButton.disabled = false;
         pathfinding = false;
         algorithmSelect.disabled = false;
+        heuristicSelect.disabled = false;
         return
     }
 
@@ -267,6 +275,7 @@ async function startSearch(){
         startButton.innerHTML = "Start"
         pathfindingDone = false;
         algorithmSelect.disabled = false;
+        heuristicSelect.disabled = false;
         stopSearch()
         return
     }
@@ -275,13 +284,32 @@ async function startSearch(){
     startButton.disabled = false;
 
     algorithmSelect.disabled = true;
+    heuristicSelect.disabled = true;
     startButton.innerHTML = "Stop";
     pauseButton.disabled = false;
 
     switch (algorithmSelect.value) {
         case "0":
             pathfinding = true;
-            await aStar()
+            switch (heuristicSelect.value) {
+                case "0":
+                    heuristicMode = 0;
+                    break;
+                case "1":
+                    heuristicMode = 1;
+                    break;
+                default:
+                    alert("Please select a heuristic")
+                    heuristicMode = -1;
+                    break;
+            }
+            if (heuristicMode >= 0){
+                await aStar()
+            } else {
+                algorithmSelect.disabled = false;
+                heuristicSelect.disabled = false;
+                pathfinding = false;
+            }
             break;
         default:
             alert("Please select an algorithm");
@@ -352,8 +380,10 @@ async function clearBlocked(){
         pathfindingDone = false;
         startButton.innerHTML = "Start"
         algorithmSelect.disabled = false;
+        heuristicSelect.disabled = false;
     } else {
         algorithmSelect.disabled = false;
+        heuristicSelect.disabled = false;
     }
     clearButton.disabled = false;
 }
@@ -441,6 +471,7 @@ function reset(){
     closedNodes = []
     startButton.innerHTML = "Start"
     algorithmSelect.disabled = false;
+    heuristicSelect.disabled = false;
     clearBlocked()
     totalNodes = gridSize * gridSize;
     hoveringNode = null;

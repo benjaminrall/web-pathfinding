@@ -134,7 +134,7 @@ body {
     }
 
     .container2 {
-        top: 75%;
+        top: 70%;
         left: 67%;
         -ms-transform: translate(-50%, -50%);
         transform: translate(-50%, -50%);
@@ -154,7 +154,7 @@ body {
         width: 100%;
         text-align: center;
         margin: auto;
-        top: 59%;
+        top: 56%;
     }
 
     .container2 {
@@ -162,6 +162,11 @@ body {
         width: 100%;
         text-align: center;
         margin: auto;
-        top: 80%;
+        top: 78%;
+    }
+
+    .dropdown {
+        width: 5rem;
+        margin: 0;
     }
 }
