@@ -9,7 +9,8 @@ let nodeDivs = document.querySelectorAll(".node")
 let startNode = null;
 let endNode = null;
 let openNodes = [];
-let closeNodes = [];
+let closedNodes = [];
+let pathNodes = [];
 let pathfinding = false;
 
 class GridNode {
@@ -25,7 +26,7 @@ class GridNode {
     }
 }
 
-makeGrid()
+reset()
 
 function makeGrid(){
     grid.innerHTML = "";
@@ -87,6 +88,16 @@ function getNode(id){
 }
 
 function setEmpty(node){
+    let oi = openNodes.indexOf(node)
+    let ci = closedNodes.indexOf(node)
+    let pi = pathNodes.indexOf(node)
+    if (oi > -1){
+        openNodes.splice(oi, 1);
+    } else if (ci > -1){
+        closedNodes.splice(ci, 1);
+    } else if (pi > -1){
+        pathNodes.splice(pi, 1);
+    }
     node.state = "empty"
     getNodeDiv(node).style.backgroundColor = "var(--empty-node)"
 }
@@ -98,7 +109,7 @@ function setBlocked(node){
 
 function setStart(node){
     if (startNode !== null)
-        setEmpty(startNode);
+        setEmpty(startNode)
     node.state = "start"
     getNodeDiv(node).style.backgroundColor = "var(--start-node)"
     startNode = node
@@ -106,7 +117,7 @@ function setStart(node){
 
 function setEnd(node){
     if (endNode !== null)
-        setEmpty(endNode);
+        setEmpty(endNode)
     node.state = "end"
     getNodeDiv(node).style.backgroundColor = "var(--end-node)"
     endNode = node
@@ -115,16 +126,19 @@ function setEnd(node){
 function setOpen(node){
     node.state = "open"
     getNodeDiv(node).style.backgroundColor = "var(--open-node)"
+    openNodes.push(node)
 }
 
 function setClosed(node){
     node.state = "closed"
     getNodeDiv(node).style.backgroundColor = "var(--closed-node)"
+    closedNodes.push(node)
 }
 
 function setPath(node){
     node.state = "path"
     getNodeDiv(node).style.backgroundColor = "var(--path-node)"
+    pathNodes.push(node)
 }
 
 function swapNode(node){
@@ -148,7 +162,8 @@ function swapNode(node){
     }
 }
 
-function resetValues(){
+function reset(){
+    makeGrid()
     totalNodes = gridSize * gridSize;
     hoveringNode = null;
     lastInteraction = -1
@@ -168,24 +183,21 @@ function resetValues(){
 function detectMinScreen(x) {
     if (x.matches) {
         gridSize = 20
-        makeGrid()
-        resetValues()
+        reset()
     }
 }
 
 function detectMidScreen(x) {
     if (x.matches) {
         gridSize = 35
-        makeGrid()
-        resetValues()
+        reset()
     }
 }
 
 function detectMaxScreen(x){
     if (x.matches){
         gridSize = 50
-        makeGrid()
-        resetValues()
+        reset()
     }
 }
 
@@ -199,10 +211,12 @@ minSize.addListener(detectMinScreen)
 midSize.addListener(detectMidScreen)
 maxSize.addListener(detectMaxScreen)
 
-document.body.onmousedown = function(evt) { 
+grid.onmousedown = function(evt) { 
     mouseDown[evt.button] = true;
     if (evt.button === 0 && hoveringNode !== null){
         swapNode(getNode(hoveringNode.id))
+    } else if (evt.button === 1){
+        reset()
     }
 }
 document.body.onmouseup = function(evt) {
