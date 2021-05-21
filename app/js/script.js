@@ -22,6 +22,7 @@ let blockedNodes = [];
 let pathfinding = false;
 let paused = false;
 let pathfindingDone = false;
+let pauseDelay = 8
 
 class GridNode {
     constructor(x, y){
@@ -301,18 +302,19 @@ async function startSearch(){
                 default:
                     alert("Please select a heuristic")
                     heuristicMode = -1;
+                    algorithmSelect.disabled = false;
+                    heuristicSelect.disabled = false;
+                    pathfinding = false;
                     break;
             }
             if (heuristicMode >= 0){
                 await aStar()
-            } else {
-                algorithmSelect.disabled = false;
-                heuristicSelect.disabled = false;
-                pathfinding = false;
             }
             break;
         default:
             alert("Please select an algorithm");
+            algorithmSelect.disabled = false;
+            heuristicSelect.disabled = false;
             break;
     }
 
@@ -405,7 +407,7 @@ async function aStar(){
             break
         }
 
-        await pause(10)
+        await pause(pauseDelay)
 
         while (paused && pathfinding){
             await pause(100)
@@ -437,7 +439,7 @@ async function aStar(){
             }
         }
 
-        await pause(10)
+        await pause(pauseDelay)
 
         while (paused && pathfinding){
             await pause(100)
