@@ -312,6 +312,7 @@ async function startSearch(){
         case "0":
             pathfinding = true;
             setHeuristic()
+            pauseDelay = 8
             if (heuristicMode >= 0){
                 await aStar()
             }
@@ -319,10 +320,27 @@ async function startSearch(){
         case "1":
             pathfinding = true;
             setHeuristic()
+            pauseDelay = 5
             if (heuristicMode >= 0){
                 await djikstras()
             }
             break;
+        case "2":
+            pathfinding = true;
+            setHeuristic()
+            pauseDelay = 5
+            if (heuristicMode >= 0){
+                await breadthFirst()
+            }
+            break
+        case "3":
+            pathfinding = true;
+            setHeuristic()
+            pauseDelay = 8
+            if (heuristicMode >= 0){
+                await bestFirst()
+            }
+            break
         default:
             alert("Please select an algorithm");
             algorithmSelect.disabled = false;
@@ -525,6 +543,127 @@ async function djikstras(){
     }
 }
 
+async function breadthFirst(){
+    startNode.g = 0
+    openNodes.push(startNode)
+
+    while (pathfinding && openNodes.length > 0){
+        let current = openNodes.shift()
+        if (current === endNode){
+            while (current !== startNode){
+                if (current !== endNode){
+                    setPath(current)
+                }
+                current = current.previousNode
+            }
+            break
+        }
+
+        await pause(pauseDelay)
+
+        while (paused && pathfinding){
+            await pause(100)
+        }
+
+            if (current !== startNode && current !== endNode) {
+            setClosed(current)
+        } else {
+            closedNodes.push(current)
+        }
+
+        setNeighbours(current)
+        for (let i = 0; i < current.neighbours.length; i++){
+            let neighbour = current.neighbours[i]
+            let tempG = current.g + distanceBetween(current, neighbour)
+            if (neighbour.g === null || tempG < neighbour.g){
+                if (neighbour.g === null){
+                    if (neighbour !== startNode && neighbour !== endNode) {
+                        setOpen(neighbour)
+                    } else {
+                        openNodes.push(neighbour)
+                    }
+                }
+                neighbour.previousNode = current
+                neighbour.g = tempG
+            }
+        }
+
+        await pause(pauseDelay)
+
+        while (paused && pathfinding){
+            await pause(100)
+        }
+    }
+    if (pathfinding){
+        pathfindingDone = true;
+    } else {
+        stopSearch()
+    }
+}
+
+async function bestFirst(){
+    startNode.g = 0
+    startNode.h = heuristic(startNode)
+    openNodes.push(startNode)
+
+    while (pathfinding && openNodes.length > 0){
+
+        let current = await bestFirstGetCurrent()
+        if (current === endNode){
+            while (current !== startNode){
+                if (current !== endNode){
+                    setPath(current)
+                }
+                current = current.previousNode
+            }
+            break
+        }
+
+        await pause(pauseDelay)
+
+        while (paused && pathfinding){
+            await pause(100)
+        }
+
+        openNodes.splice(openNodes.indexOf(current), 1)
+        if (current !== startNode && current !== endNode) {
+            setClosed(current)
+        } else {
+            closedNodes.push(current)
+        }
+
+        setNeighbours(current)
+        for (let i = 0; i < current.neighbours.length; i++){
+            let neighbour = current.neighbours[i]
+            let tempG = current.g + distanceBetween(current, neighbour)
+            if (neighbour.g === null || tempG < neighbour.g){
+                if (neighbour.g === null){
+                    if (neighbour !== startNode && neighbour !== endNode) {
+                        setOpen(neighbour)
+                    } else {
+                        openNodes.push(neighbour)
+                    }
+                }
+                neighbour.previousNode = current
+                neighbour.g = tempG
+                neighbour.h = heuristic(neighbour)
+            }
+        }
+
+        await pause(pauseDelay)
+
+        while (paused && pathfinding){
+            await pause(100)
+        }
+
+    }
+    if (pathfinding){
+        pathfindingDone = true;
+    } else {
+        stopSearch()
+    }
+}
+
 async function aStarGetCurrent(){
     let minNode = openNodes[0];
     for (let i = 0; i < openNodes.length; i++){
@@ -543,6 +682,16 @@ async function djikstrasGetCurrent(){
         if (openNodes[i].g < minNode.g){
             minNode = openNodes[i]
         } else if (openNodes[i].g === minNode.g && heuristic(openNodes[i]) === 0){
+            minNode = openNodes[i]
+        }
+    }
+    return minNode
+}
+
+async function bestFirstGetCurrent(){
+    let minNode = openNodes[0];
+    for (let i = 0; i < openNodes.length; i++){
+        if (openNodes[i].h < minNode.h){
             minNode = openNodes[i]
         }
     }
