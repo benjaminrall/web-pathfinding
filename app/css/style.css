@@ -16,6 +16,7 @@
     --container-mid-size: 60vh;
     --container-min-size: 40vh;
     --node-border: 0.01rem;
+    --button-margin: 2vh;
 }
 
 * {
@@ -58,6 +59,34 @@ body {
     border: 0px;
 }
 
+.container1 {
+    
+    position: fixed;
+
+    top: 20%;
+    right: 20%;
+    -ms-transform: translate(50%, -50%);
+    transform: translate(50%, -50%);
+
+    width: 10rem;
+    height: 10vh;
+
+    justify-content: baseline;
+    align-items: center;
+}
+
+.container2 {
+    position: fixed;
+
+    top: 70%;
+    right: 20%;
+    -ms-transform: translate(50%, -50%);
+    transform: translate(50%, -50%);
+
+    width: 10rem;
+    height: 10vh;
+}
+
 .dropdown {
     -webkit-appearance: none;  /* Override default CSS styles */
     appearance: none;
@@ -68,6 +97,7 @@ body {
     outline: none; /* Remove outline */
     padding:0.5rem;
     cursor: pointer;
+    margin: var(--button-margin);
 }
 
 .button {
@@ -77,6 +107,7 @@ body {
     border: 0;
     border-radius: 0.7rem;
     background-color: #d3d3d3;
+    margin: var(--button-margin);
 }
 
 .button:hover {
@@ -94,6 +125,20 @@ body {
         width: var(--container-mid-size);
         height: var(--container-mid-size);
     }
+
+    .container1 {
+        top: 75%;
+        left: 30%;
+        -ms-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+    }
+
+    .container2 {
+        top: 75%;
+        left: 67%;
+        -ms-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+    }
 }
 
 @media only screen and (max-width: 768px) {
@@ -102,5 +147,21 @@ body {
         left: 50%;
         width: var(--container-min-size);
         height: var(--container-min-size);
+    }
+
+    .container1 {
+        left: 50%;
+        width: 100%;
+        text-align: center;
+        margin: auto;
+        top: 59%;
+    }
+
+    .container2 {
+        left: 50%;
+        width: 100%;
+        text-align: center;
+        margin: auto;
+        top: 80%;
     }
 }
