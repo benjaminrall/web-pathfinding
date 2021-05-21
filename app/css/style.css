@@ -78,7 +78,7 @@ body {
 .container2 {
     position: fixed;
 
-    top: 70%;
+    top: 65%;
     right: 20%;
     -ms-transform: translate(50%, -50%);
     transform: translate(50%, -50%);
@@ -120,7 +120,7 @@ body {
 
 @media only screen and (max-width: 1296px) {
     .node-container {
-        top: 35%;
+        top: 33%;
         left: 50%;
         width: var(--container-mid-size);
         height: var(--container-mid-size);
@@ -134,7 +134,7 @@ body {
     }
 
     .container2 {
-        top: 70%;
+        top: 72%;
         left: 67%;
         -ms-transform: translate(-50%, -50%);
         transform: translate(-50%, -50%);
@@ -143,7 +143,7 @@ body {
 
 @media only screen and (max-width: 768px) {
     .node-container {
-        top: 30%;
+        top: 25%;
         left: 50%;
         width: var(--container-min-size);
         height: var(--container-min-size);

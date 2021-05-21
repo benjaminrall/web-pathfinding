@@ -259,6 +259,24 @@ function setNeighbours(node){
     node.neighbours = neighbours
 }
 
+async function setHeuristic(){
+    switch (heuristicSelect.value) {
+        case "0":
+            heuristicMode = 0;
+            break;
+        case "1":
+            heuristicMode = 1;
+            break;
+        default:
+            alert("Please select a heuristic")
+            heuristicMode = -1;
+            algorithmSelect.disabled = false;
+            heuristicSelect.disabled = false;
+            pathfinding = false;
+            break;
+    }
+}
+
 async function startSearch(){
 
     if (pathfinding){
@@ -289,26 +307,20 @@ async function startSearch(){
     startButton.innerHTML = "Stop";
     pauseButton.disabled = false;
 
+
     switch (algorithmSelect.value) {
         case "0":
             pathfinding = true;
-            switch (heuristicSelect.value) {
-                case "0":
-                    heuristicMode = 0;
-                    break;
-                case "1":
-                    heuristicMode = 1;
-                    break;
-                default:
-                    alert("Please select a heuristic")
-                    heuristicMode = -1;
-                    algorithmSelect.disabled = false;
-                    heuristicSelect.disabled = false;
-                    pathfinding = false;
-                    break;
-            }
+            setHeuristic()
             if (heuristicMode >= 0){
                 await aStar()
+            }
+            break;
+        case "1":
+            pathfinding = true;
+            setHeuristic()
+            if (heuristicMode >= 0){
+                await djikstras()
             }
             break;
         default:
@@ -452,12 +464,85 @@ async function aStar(){
     }
 }
 
+async function djikstras(){
+    startNode.g = 0
+    openNodes.push(startNode)
+
+    while (pathfinding && openNodes.length > 0){
+
+        let current = await djikstrasGetCurrent()
+        if (current === endNode){
+            while (current !== startNode){
+                if (current !== endNode){
+                    setPath(current)
+                }
+                current = current.previousNode
+            }
+            break
+        }
+
+        await pause(pauseDelay)
+
+        while (paused && pathfinding){
+            await pause(100)
+        }
+
+        openNodes.splice(openNodes.indexOf(current), 1)
+        if (current !== startNode && current !== endNode) {
+            setClosed(current)
+        } else {
+            closedNodes.push(current)
+        }
+
+        setNeighbours(current)
+        for (let i = 0; i < current.neighbours.length; i++){
+            let neighbour = current.neighbours[i]
+            let tempG = current.g + distanceBetween(current, neighbour)
+            if (neighbour.g === null || tempG < neighbour.g){
+                if (neighbour.g === null){
+                    if (neighbour !== startNode && neighbour !== endNode) {
+                        setOpen(neighbour)
+                    } else {
+                        openNodes.push(neighbour)
+                    }
+                }
+                neighbour.previousNode = current
+                neighbour.g = tempG
+            }
+        }
+
+        await pause(pauseDelay)
+
+        while (paused && pathfinding){
+            await pause(100)
+        }
+
+    }
+    if (pathfinding){
+        pathfindingDone = true;
+    } else {
+        stopSearch()
+    }
+}
+
 async function aStarGetCurrent(){
     let minNode = openNodes[0];
     for (let i = 0; i < openNodes.length; i++){
         if (openNodes[i].f < minNode.f){
             minNode = openNodes[i]
         } else if (openNodes[i].f === minNode.f && openNodes[i].h < minNode.h){
+            minNode = openNodes[i]
+        }
+    }
+    return minNode
+}
+
+async function djikstrasGetCurrent(){
+    let minNode = openNodes[0];
+    for (let i = 0; i < openNodes.length; i++){
+        if (openNodes[i].g < minNode.g){
+            minNode = openNodes[i]
+        } else if (openNodes[i].g === minNode.g && heuristic(openNodes[i]) === 0){
             minNode = openNodes[i]
         }
     }
