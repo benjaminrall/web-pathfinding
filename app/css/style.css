@@ -171,7 +171,7 @@ ul {
 
 @media only screen and (max-width: 768px) {
     .node-container {
-        top: 28%;
+        top: 30%;
         left: 50%;
         width: var(--container-min-size);
         height: var(--container-min-size);
@@ -182,7 +182,7 @@ ul {
         width: 100%;
         text-align: center;
         margin: auto;
-        top: 56%;
+        top: 58%;
     }
 
     .container2 {
@@ -190,7 +190,7 @@ ul {
         width: 100%;
         text-align: center;
         margin: auto;
-        top: 78%;
+        top: 80%;
     }
 
     .dropdown {
