@@ -1,6 +1,11 @@
 let gridSize = 50;
 let totalNodes = gridSize * gridSize;
 let grid = document.getElementById("node-container");
+let startButton = document.getElementById("start-button");
+let pauseButton = document.getElementById("pause-button");
+pauseButton.disabled = true;
+let clearButton = document.getElementById("clear-button");
+let algorithmSelect = document.getElementById("algorithm-select");
 let nodes = []
 let lastInteraction = -1;
 let hoveringNode = null;
@@ -11,7 +16,10 @@ let endNode = null;
 let openNodes = [];
 let closedNodes = [];
 let pathNodes = [];
+let blockedNodes = [];
 let pathfinding = false;
+let paused = false;
+let pathfindingDone = false;
 
 class GridNode {
     constructor(x, y){
@@ -22,6 +30,13 @@ class GridNode {
         this.h = null;
         this.f = null;
         this.neighbours = []
+        this.previousNode = null;
+    }
+
+    resetValues(){
+        this.g = null;
+        this.h = null;
+        this.f = null;
         this.previousNode = null;
     }
 }
@@ -91,12 +106,15 @@ function setEmpty(node){
     let oi = openNodes.indexOf(node)
     let ci = closedNodes.indexOf(node)
     let pi = pathNodes.indexOf(node)
+    let bi = blockedNodes.indexOf(node)
     if (oi > -1){
         openNodes.splice(oi, 1);
     } else if (ci > -1){
         closedNodes.splice(ci, 1);
     } else if (pi > -1){
         pathNodes.splice(pi, 1);
+    } else if (bi > -1){
+        blockedNodes.splice(bi, 1);
     }
     node.state = "empty"
     getNodeDiv(node).style.backgroundColor = "var(--empty-node)"
@@ -105,6 +123,7 @@ function setEmpty(node){
 function setBlocked(node){
     node.state = "blocked"
     getNodeDiv(node).style.backgroundColor = "var(--blocked-node)"
+    blockedNodes.push(node)
 }
 
 function setStart(node){
@@ -142,7 +161,7 @@ function setPath(node){
 }
 
 function swapNode(node){
-    if (pathfinding){
+    if (pathfinding || pathfindingDone){
         return
     }
     if (node.state === "empty" && (lastInteraction === -1 || lastInteraction === 0)){
@@ -162,8 +181,267 @@ function swapNode(node){
     }
 }
 
+function distanceBetween(n1, n2){
+    xDiff = Math.abs(n1.x - n2.x)
+    yDiff = Math.abs(n1.y - n2.y)
+
+    let distance = 0;
+
+    while (xDiff > 0 && yDiff > 0){
+        xDiff--;
+        yDiff--;
+        distance += 14;
+    }
+
+    while (xDiff > 0){
+        xDiff--;
+        distance += 10
+    }
+
+    while (yDiff > 0){
+        yDiff--;
+        distance += 10
+    }
+
+    return distance
+}
+
+function heuristic(node){
+    return distanceBetween(node, endNode)
+}
+
+function setNeighbours(node){
+    let neighbours = []
+    for (let row = -1; row < 2; row++){
+        for (let col = -1; col < 2; col++){
+            let x = node.x + col
+            let y = node.y + row
+            if (x >= 0 && y >= 0 && x < gridSize && y < gridSize && !(row === 0 && col === 0)){
+                let neighbour = getNodeCoord(x, y)
+                if (neighbour.state !== "blocked"){
+                    if (row === 0  || col === 0){
+                        neighbours.push(neighbour)
+                    } else {
+                        if ( row < 0 && col < 0){
+                            if (!(getNodeCoord(x + 1, y).state === "blocked" && getNodeCoord(x, y + 1).state === "blocked"))
+                            {
+                                neighbours.push(neighbour)
+                            }
+                        } else if (row < 0 && col > 0){
+                            if (!(getNodeCoord(x - 1, y).state === "blocked" && getNodeCoord(x, y + 1).state === "blocked"))
+                            {
+                                neighbours.push(neighbour)
+                            }
+                        } else if (row > 0 && col < 0){
+                            if (!(getNodeCoord(x + 1, y).state === "blocked" && getNodeCoord(x, y - 1).state === "blocked"))
+                            {
+                                neighbours.push(neighbour)
+                            }
+                        } else if (row > 0 && col > 0){
+                            if (!(getNodeCoord(x - 1, y).state === "blocked" && getNodeCoord(x, y - 1).state === "blocked"))
+                            {
+                                neighbours.push(neighbour)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    node.neighbours = neighbours
+}
+
+async function startSearch(){
+
+    if (pathfinding){
+        startButton.disabled = true;
+        startButton.disabled = false;
+        pathfinding = false;
+        algorithmSelect.disabled = false;
+        return
+    }
+
+    if (pathfindingDone){
+        startButton.disabled = true;
+        startButton.disabled = false;
+        startButton.innerHTML = "Start"
+        pathfindingDone = false;
+        algorithmSelect.disabled = false;
+        stopSearch()
+        return
+    }
+
+    startButton.disabled = true;
+    startButton.disabled = false;
+
+    algorithmSelect.disabled = true;
+    startButton.innerHTML = "Stop";
+    pauseButton.disabled = false;
+
+    switch (algorithmSelect.value) {
+        case "0":
+            pathfinding = true;
+            await aStar()
+            break;
+        default:
+            alert("Please select an algorithm");
+            break;
+    }
+
+    pathfinding = false;
+
+    pauseButton.disabled = true;
+    pauseButton.innerHTML = "Pause"
+    paused = false;
+
+    if (pathfindingDone){
+        startButton.innerHTML = "Restart";
+    } else {
+        startButton.innerHTML = "Start";
+    }
+}
+
+async function pauseSearch(){
+    pauseButton.disabled = true;
+    if (paused){
+        
+        paused = false;
+        pauseButton.innerHTML = "Pause"
+    } else {
+        paused = true;
+        pauseButton.innerHTML = "Resume"
+    }
+    pauseButton.disabled = false;
+}
+
+async function stopSearch(){
+    pathfinding = false;
+    startNode.resetValues()
+    endNode.resetValues()
+    for (let i = openNodes.length - 1; i >= 0; i--){
+        if (openNodes[i] !== startNode && openNodes[i] !== endNode){
+            openNodes[i].resetValues()
+            setEmpty(openNodes[i])
+        }
+    }
+    for (let i = closedNodes.length - 1; i >= 0; i--){
+        if (closedNodes[i] !== startNode && closedNodes[i] !== endNode){
+            closedNodes[i].resetValues()
+            setEmpty(closedNodes[i])
+        }
+        
+    }
+    for (let i = pathNodes.length - 1; i >= 0; i--){
+        if (pathNodes[i] !== startNode && pathNodes[i] !== endNode){
+            pathNodes[i].resetValues()
+            setEmpty(pathNodes[i])
+        }
+    }
+    openNodes = []
+    closedNodes = []
+    pathNodes = []
+}
+
+async function clearBlocked(){
+    clearButton.disabled = true;
+    stopSearch();
+    for (let i = blockedNodes.length - 1; i >= 0; i--){
+        setEmpty(blockedNodes[i])
+    }
+    if (pathfindingDone){
+        pathfindingDone = false;
+        startButton.innerHTML = "Start"
+        algorithmSelect.disabled = false;
+    } else {
+        algorithmSelect.disabled = false;
+    }
+    clearButton.disabled = false;
+}
+
+async function aStar(){
+    startNode.g = 0
+    startNode.h = heuristic(startNode)
+    startNode.f = startNode.h
+    openNodes.push(startNode)
+    while (pathfinding && openNodes.length > 0) {
+        let current = await aStarGetCurrent()
+        if (current === endNode){
+            while (current !== startNode){
+                if (current !== endNode){
+                    setPath(current)
+                }
+                current = current.previousNode
+            }
+            break
+        }
+
+        await pause(10)
+
+        while (paused && pathfinding){
+            await pause(100)
+        }
+
+        openNodes.splice(openNodes.indexOf(current), 1)
+        if (current !== startNode && current !== endNode) {
+            setClosed(current)
+        } else {
+            closedNodes.push(current)
+        }
+
+        setNeighbours(current)
+        for (let i = 0; i < current.neighbours.length; i++){
+            let neighbour = current.neighbours[i]
+            let tempG = current.g + distanceBetween(current, neighbour)
+            if (neighbour.g === null || tempG < neighbour.g){
+                if (neighbour.g === null){
+                    if (neighbour !== startNode && neighbour !== endNode) {
+                        setOpen(neighbour)
+                    } else {
+                        openNodes.push(neighbour)
+                    }
+                }
+                neighbour.previousNode = current
+                neighbour.g = tempG
+                neighbour.h = heuristic(neighbour)
+                neighbour.f = neighbour.g + neighbour.h
+            }
+        }
+
+        await pause(10)
+
+        while (paused && pathfinding){
+            await pause(100)
+        }
+    }
+    if (pathfinding){
+        pathfindingDone = true;
+    } else {
+        stopSearch()
+    }
+}
+
+async function aStarGetCurrent(){
+    let minNode = openNodes[0];
+    for (let i = 0; i < openNodes.length; i++){
+        if (openNodes[i].f < minNode.f){
+            minNode = openNodes[i]
+        } else if (openNodes[i].f === minNode.f && openNodes[i].h < minNode.h){
+            minNode = openNodes[i]
+        }
+    }
+    return minNode
+}
+
 function reset(){
+    pathfinding = false;
+    pathfindingDone = false;
     makeGrid()
+    pathNodes = []
+    openNodes = []
+    closedNodes = []
+    startButton.innerHTML = "Start"
+    algorithmSelect.disabled = false;
+    clearBlocked()
     totalNodes = gridSize * gridSize;
     hoveringNode = null;
     lastInteraction = -1
@@ -178,6 +456,14 @@ function reset(){
             }
         });
     }
+}
+
+function pause(ms) {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve("");
+        }, ms);
+    });
 }
 
 function detectMinScreen(x) {
