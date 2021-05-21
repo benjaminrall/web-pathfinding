@@ -742,14 +742,14 @@ function detectMinScreen(x) {
 
 function detectMidScreen(x) {
     if (x.matches) {
-        gridSize = 35
+        gridSize = 30
         reset()
     }
 }
 
 function detectMaxScreen(x){
     if (x.matches){
-        gridSize = 50
+        gridSize = 40
         reset()
     }
 }

@@ -13,7 +13,7 @@
     --blocked-node: #191718;
     --node-container: #4c4c4c;
     --container-max-size: 80vh;
-    --container-mid-size: 60vh;
+    --container-mid-size: 55vh;
     --container-min-size: 40vh;
     --node-border: 0.01rem;
     --button-margin: 2vh;
@@ -29,6 +29,35 @@ body {
     margin: 0;
     padding: 0;
 }
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333;
+  }
+  
+  li {
+    float: left;
+  }
+  
+  li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+  }
+  
+  /* Change the link color to #111 (black) on hover */
+  li a:hover {
+    background-color: #111;
+  }
+
+  .active {
+    background-color: #004500;
+  }
 
 .node-container {
     position: fixed;
@@ -120,7 +149,7 @@ body {
 
 @media only screen and (max-width: 1296px) {
     .node-container {
-        top: 33%;
+        top: 37%;
         left: 50%;
         width: var(--container-mid-size);
         height: var(--container-mid-size);
@@ -143,7 +172,7 @@ body {
 
 @media only screen and (max-width: 768px) {
     .node-container {
-        top: 25%;
+        top: 28%;
         left: 50%;
         width: var(--container-min-size);
         height: var(--container-min-size);
