@@ -6,6 +6,11 @@ let lastInteraction = -1;
 let hoveringNode = null;
 let mouseDown = [false, false, false, false, false, false, false, false, false]
 let nodeDivs = document.querySelectorAll(".node")
+let startNode = null;
+let endNode = null;
+let openNodes = [];
+let closeNodes = [];
+let pathfinding = false;
 
 class GridNode {
     constructor(x, y){
@@ -54,6 +59,8 @@ function makeGrid(){
         }
     }
 
+    startNode = null;
+    endNode = null;
     setStart(getNodeCoord(2, 2))
     setEnd(getNodeCoord(gridSize - 3, gridSize - 3))
 
@@ -80,7 +87,8 @@ function getNode(id){
 }
 
 function setEmpty(node){
-
+    node.state = "empty"
+    getNodeDiv(node).style.backgroundColor = "var(--empty-node)"
 }
 
 function setBlocked(node){
@@ -89,41 +97,65 @@ function setBlocked(node){
 }
 
 function setStart(node){
+    if (startNode !== null)
+        setEmpty(startNode);
     node.state = "start"
     getNodeDiv(node).style.backgroundColor = "var(--start-node)"
+    startNode = node
 }
 
 function setEnd(node){
+    if (endNode !== null)
+        setEmpty(endNode);
     node.state = "end"
     getNodeDiv(node).style.backgroundColor = "var(--end-node)"
+    endNode = node
 }
 
 function setOpen(node){
-
+    node.state = "open"
+    getNodeDiv(node).style.backgroundColor = "var(--open-node)"
 }
 
 function setClosed(node){
+    node.state = "closed"
+    getNodeDiv(node).style.backgroundColor = "var(--closed-node)"
+}
 
+function setPath(node){
+    node.state = "path"
+    getNodeDiv(node).style.backgroundColor = "var(--path-node)"
 }
 
 function swapNode(node){
+    if (pathfinding){
+        return
+    }
     if (node.state === "empty" && (lastInteraction === -1 || lastInteraction === 0)){
-        node.state = "blocked"
-        getNodeDiv(node).style.backgroundColor = "var(--blocked-node)"
+        setBlocked(node)
         lastInteraction = 0
     } else if (node.state === "blocked" && (lastInteraction === -1 || lastInteraction === 1)){
-        node.state = "empty"
-        getNodeDiv(node).style.backgroundColor = "var(--empty-node)"
+        setEmpty(node)
         lastInteraction = 1
+    } else if (node.state === "start" && lastInteraction === -1){
+        lastInteraction = 2
+    } else if (node.state === "empty" && lastInteraction === 2){
+        setStart(node)
+    } else if (node.state === "end" && lastInteraction === -1){
+        lastInteraction = 3
+    } else if (node.state === "empty" && lastInteraction === 3){
+        setEnd(node)
     }
 }
 
 function resetValues(){
     totalNodes = gridSize * gridSize;
     hoveringNode = null;
+    lastInteraction = -1
+    openNodes = []
+    closedNodes = []
     nodeDivs = document.querySelectorAll(".node")
     for (let i = 0; i < nodeDivs.length; i++) {
-        console.log()
         nodeDivs[i].addEventListener('mouseenter', function (e) {
             hoveringNode = document.querySelector('.node:hover');
             if (mouseDown[0]){
