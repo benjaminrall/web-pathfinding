@@ -378,6 +378,7 @@ async function stopSearch(){
     pathfinding = false;
     startNode.resetValues()
     endNode.resetValues()
+    
     for (let i = openNodes.length - 1; i >= 0; i--){
         if (openNodes[i] !== startNode && openNodes[i] !== endNode){
             openNodes[i].resetValues()
