@@ -1,2 +1,2 @@
 # web-pathfinding
-Multiple pathfinding algorithms visualised on a website https://benjaminrall.github.io/web-pathfinding
+Visualiser Github Pages Link: https://benjaminrall.github.io/web-pathfinding
